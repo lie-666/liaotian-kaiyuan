@@ -1,0 +1,1721 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>聊天室</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --primary-light: #e0e7ff;
+            --secondary: #3f37c9;
+            --text: #2b2d42;
+            --text-light: #8d99ae;
+            --bg: #f8f9fa;
+            --card-bg: #ffffff;
+            --success: #4cc9f0;
+            --error: #f72585;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --sidebar-width: 250px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #login-container {
+            width: 100%;
+            max-width: 400px;
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            padding: 30px;
+        }
+
+        .form-title {
+            text-align: center;
+            margin-bottom: 24px;
+            color: var(--primary);
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 24px;
+        }
+
+        .form-btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background: var(--secondary);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(67, 97, 238, 0.1);
+        }
+
+        .remember-me {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .remember-me input {
+            margin-right: 8px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* 聊天室主容器 */
+        #app-container {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            height: 80vh;
+            max-height: 800px;
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        /* 侧边栏样式 */
+        #sidebar {
+            width: var(--sidebar-width);
+            background: white;
+            border-right: 1px solid rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 16px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 12px;
+            object-fit: cover;
+            background-color: var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .user-name {
+            font-weight: 600;
+            flex: 1;
+        }
+
+        .sidebar-menu {
+            padding: 8px 0;
+        }
+
+        .menu-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: background 0.2s;
+        }
+
+        .menu-item:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .menu-item i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .divider {
+            height: 1px;
+            background: rgba(0, 0, 0, 0.05);
+            margin: 8px 0;
+        }
+
+        /* 聊天区域样式 */
+        #chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            background: var(--primary);
+            color: white;
+            padding: 16px 24px;
+            font-size: 1.25rem;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .user-badge {
+            background: var(--primary-light);
+            color: var(--primary);
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        #messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .message {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            position: relative;
+            animation: fadeIn 0.3s ease-out;
+            word-wrap: break-word;
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            margin-right: 8px;
+            object-fit: cover;
+            background-color: var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-weight: bold;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .message-content {
+            flex: 1;
+        }
+
+        .message.user-message {
+            align-self: flex-end;
+            background: var(--primary);
+            color: white;
+            border-bottom-right-radius: 4px;
+            flex-direction: row-reverse;
+        }
+
+        .message.other-message {
+            align-self: flex-start;
+            background: var(--primary-light);
+            color: var(--text);
+            border-bottom-left-radius: 4px;
+        }
+
+        .message-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+            font-size: 0.75rem;
+        }
+
+        .username {
+            font-weight: 600;
+        }
+
+        .user-message .username {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .other-message .username {
+            color: var(--secondary);
+        }
+
+        .timestamp {
+            color: var(--text-light);
+            font-size: 0.7rem;
+        }
+
+        .user-message .timestamp {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        #message-form {
+            display: flex;
+            padding: 16px;
+            background: white;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+            position: relative;
+        }
+
+        #message-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid rgba(0, 0, 0, 0.1);
+            border-radius: 24px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: border-color 0.2s;
+        }
+
+        #message-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        button[type="submit"] {
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 24px;
+            padding: 0 24px;
+            margin-left: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        button[type="submit"]:hover {
+            background: var(--secondary);
+        }
+
+        button[type="submit"]:active {
+            transform: scale(0.98);
+        }
+
+        #error {
+            color: var(--error);
+            text-align: center;
+            padding: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 个人信息页面样式 */
+        #profile-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg);
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+        }
+
+        .profile-header {
+            padding: 16px;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .profile-back {
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+
+        .profile-title {
+            font-weight: 600;
+        }
+
+        .profile-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .avatar-upload {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .avatar-preview {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 12px;
+            background-color: var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-weight: bold;
+            font-size: 36px;
+        }
+
+        .avatar-upload-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .profile-field {
+            margin-bottom: 16px;
+        }
+
+        .profile-field label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .profile-field input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.95rem;
+        }
+
+        .profile-actions {
+            padding: 16px;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .save-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        /* 滚动条样式 */
+        #messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #messages::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 3px;
+        }
+
+        #messages::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 3px;
+        }
+
+        #messages::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        /* 右键菜单样式 */
+        .context-menu {
+            position: absolute;
+            background: white;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            z-index: 1000;
+            min-width: 150px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .context-menu-item {
+            padding: 10px 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .context-menu-item:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .context-menu-item i {
+            margin-right: 8px;
+            width: 16px;
+            text-align: center;
+        }
+
+        /* 附件菜单样式 */
+        .attachment-menu {
+            position: absolute;
+            bottom: 70px;
+            right: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            padding: 10px;
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+            transform: translateY(20px);
+            opacity: 0;
+            transition: all 0.2s ease;
+            z-index: 100;
+        }
+
+        .attachment-menu.show {
+            display: flex;
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .attachment-btn {
+            display: flex;
+            align-items: center;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .attachment-btn:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .attachment-btn i {
+            margin-right: 10px;
+            color: var(--primary);
+        }
+
+        /* 加号按钮样式 */
+        .plus-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            margin-right: 12px;
+            transition: all 0.2s;
+        }
+
+        .plus-btn:hover {
+            background: var(--secondary);
+            transform: rotate(90deg);
+        }
+
+        /* 引用消息样式 */
+        .quoted-message {
+            background: rgba(0, 0, 0, 0.05);
+            border-left: 3px solid var(--primary);
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+
+        .quoted-username {
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+
+        .quoted-text {
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* 媒体消息样式 */
+        .media-message {
+            max-width: 300px;
+            margin-top: 8px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .media-message img, .media-message video {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 8px;
+            display: block;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            #app-container {
+                height: 90vh;
+                border-radius: 8px;
+            }
+
+            #sidebar {
+                width: 60px;
+            }
+
+            .user-name, .menu-item span {
+                display: none;
+            }
+
+            .menu-item {
+                justify-content: center;
+            }
+
+            .menu-item i {
+                margin-right: 0;
+            }
+
+            .message {
+                max-width: 85%;
+            }
+
+            .media-message {
+                max-width: 200px;
+            }
+        }
+         .violation-alert {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            display: none;
+        }
+        
+        .violation-alert h3 {
+            color: #f72585;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+        
+        .violation-alert p {
+            margin-bottom: 20px;
+            color: #2b2d42;
+        }
+        
+        .violation-alert .appeal-btn {
+            color: #4361ee;
+            text-decoration: underline;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        
+        .violation-text {
+            background-color: #ffebee;
+            color: #f72585;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-weight: 500;
+        }
+        
+        .violation-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="login-container">
+        <h2 class="form-title">欢迎来到聊天室</h2>
+        <div id="login-form">
+            <div class="form-group">
+                <label for="login-username">用户名</label>
+                <input type="text" id="login-username" placeholder="输入用户名" required>
+            </div>
+            <div class="form-group">
+                <label for="login-password">密码</label>
+                <input type="password" id="login-password" placeholder="输入密码" required>
+            </div>
+            <div class="remember-me">
+                <input type="checkbox" id="remember-me">
+                <label for="remember-me">在30天内自动登录</label>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="form-btn btn-secondary" id="show-register">注册</button>
+                <button type="button" class="form-btn btn-primary" id="login-btn">登录</button>
+            </div>
+        </div>
+        <div id="register-form" class="hidden">
+            <div class="form-group">
+                <label for="register-username">用户名</label>
+                <input type="text" id="register-username" placeholder="输入用户名" required>
+            </div>
+            <div class="form-group">
+                <label for="register-password">密码</label>
+                <input type="password" id="register-password" placeholder="输入密码" required>
+            </div>
+            <div class="form-group">
+                <label for="confirm-password">确认密码</label>
+                <input type="password" id="confirm-password" placeholder="再次输入密码" required>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="form-btn btn-secondary" id="show-login">返回登录</button>
+                <button type="button" class="form-btn btn-primary" id="register-btn">注册</button>
+            </div>
+        </div>
+        <div id="login-error" class="error"></div>
+    </div>
+
+    <div id="app-container" class="hidden">
+        <!-- 侧边栏 -->
+        <div id="sidebar">
+            <div class="sidebar-header">
+                <div class="user-avatar" id="sidebar-avatar">U</div>
+                <div class="user-name" id="sidebar-username">用户</div>
+            </div>
+            <div class="divider"></div>
+            <div class="sidebar-menu">
+                <div class="menu-item" id="edit-profile">
+                    <i class="fas fa-user-edit"></i>
+                    <span>修改个人信息</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 聊天区域 -->
+        <div id="chat-area">
+            <div class="chat-header">
+                <span>现代聊天室</span>
+                <div class="user-badge" id="user-badge">用户</div>
+            </div>
+            <div id="messages"></div>
+            <div id="error" class="error"></div>
+            <form id="message-form">
+                <button type="button" class="plus-btn" id="plus-btn">
+                    <i class="fas fa-plus"></i>
+                </button>
+                <input type="text" id="message-input" placeholder="输入消息..." required>
+                <button type="submit">发送</button>
+            </form>
+            <div class="attachment-menu" id="attachment-menu">
+                <div class="attachment-btn" id="send-image-btn">
+                    <i class="fas fa-image"></i>
+                    <span>图片</span>
+                </div>
+                <div class="attachment-btn" id="send-video-btn">
+                    <i class="fas fa-video"></i>
+                    <span>视频</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 个人信息页面 -->
+    <div id="profile-container">
+        <div class="profile-header">
+            <div class="profile-back" id="profile-back"><i class="fas fa-arrow-left"></i></div>
+            <div class="profile-title">个人信息</div>
+            <div style="width: 24px;"></div>
+        </div>
+        <div class="profile-content">
+            <div class="avatar-upload">
+                <img id="avatar-preview" class="avatar-preview" src="" alt="头像">
+                <input type="file" id="avatar-upload" accept="image/png, image/jpeg, image/gif" style="display: none;">
+                <button type="button" class="avatar-upload-btn" id="avatar-upload-btn">更改头像</button>
+            </div>
+            <div class="profile-field">
+                <label for="profile-username">名称</label>
+                <input type="text" id="profile-username" readonly>
+            </div>
+            <div class="profile-field">
+                <label for="profile-password">密码</label>
+                <input type="password" id="profile-password" placeholder="输入新密码">
+            </div>
+        </div>
+        <div class="profile-actions">
+            <button type="button" class="save-btn" id="save-profile">保存更改</button>
+        </div>
+    </div>
+
+    <!-- 右键菜单 -->
+    <div class="context-menu" id="context-menu">
+        <div class="context-menu-item" id="context-menu-copy">
+            <i class="fas fa-copy"></i>
+            <span>复制</span>
+        </div>
+        <div class="context-menu-item" id="context-menu-reply">
+            <i class="fas fa-reply"></i>
+            <span>引用</span>
+        </div>
+        <div class="context-menu-item" id="context-menu-delete">
+            <i class="fas fa-trash"></i>
+            <span>撤回</span>
+        </div>
+    </div>
+
+    <!-- 隐藏的文件输入 -->
+    <input type="file" id="image-input" accept="image/*" style="display: none;">
+    <input type="file" id="video-input" accept="video/*" style="display: none;">
+
+    <!-- 音频元素用于消息通知 -->
+    <audio id="message-notification" src="ls.mp3" preload="auto"></audio>
+    <div class="violation-overlay" id="violation-overlay"></div>
+    
+    <!-- 违规警告弹窗 -->
+    <div class="violation-overlay" id="violation-overlay"></div>
+    <div class="violation-alert" id="violation-alert">
+        <h3>违规警告</h3>
+        <div class="violation-text" id="violation-text"></div>
+        <p>你已违反社区规定，请文明用语</p>
+        <p>如有疑问，<span class="appeal-btn" id="appeal-btn">点击申诉</span></p>
+    </div>
+    <script>
+        // === 配置区 === (修改这里！)
+        const GITHUB_TOKEN = "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";  // 需有 repo 权限
+        const GITHUB_USER = "lie-666";
+        const REPO_NAME = "liaotian";
+        const MESSAGES_FILE = "messages.json";
+        const USERS_FILE = "users.json";
+        const AVATAR_FOLDER = "users/";
+        const TEMP_FOLDER = "temp/";
+        const SILICONFLOW_API_KEY = "sk-wscoprnbkoskcuktgslusjzgnndoosrbkabstbecujliuvuv";
+        // =============
+
+        // 工具函数：Base64编码（兼容中文）
+        function encodeBase64(str) {
+            return btoa(unescape(encodeURIComponent(str)));
+        }
+
+        // 工具函数：Base64解码
+        function decodeBase64(str) {
+            return decodeURIComponent(escape(atob(str)));
+        }
+
+        // 生成随机文件名
+        function generateRandomFilename(ext) {
+            return Math.random().toString(36).substring(2, 15) + Date.now() + '.' + ext;
+        }
+
+        // 显示错误
+        function showError(msg, isLoginError = true) {
+            const errorEl = isLoginError ? document.getElementById('login-error') : document.getElementById('error');
+            errorEl.textContent = msg;
+            setTimeout(() => {
+                errorEl.textContent = '';
+            }, 3000);
+        }
+
+        // 获取或创建GitHub文件
+        async function getOrCreateFile(filename, defaultContent = '[]') {
+            try {
+                const url = `https://api.github.com/repos/${GITHUB_USER}/${REPO_NAME}/contents/${filename}`;
+                const response = await fetch(url, {
+                    headers: {
+                        'Authorization': `token ${GITHUB_TOKEN}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+
+                if (response.status === 404) {
+                    // 文件不存在，创建新文件
+                    const createRes = await fetch(url, {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': `token ${GITHUB_TOKEN}`,
+                            'Accept': 'application/vnd.github.v3+json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            message: `创建 ${filename}`,
+                            content: encodeBase64(defaultContent)
+                        })
+                    });
+
+                    if (!createRes.ok) throw new Error('创建文件失败');
+                    
+                    return {
+                        content: defaultContent,
+                        sha: (await createRes.json()).content.sha
+                    };
+                }
+
+                if (!response.ok) throw new Error(`获取文件失败: ${response.status}`);
+
+                const data = await response.json();
+                return {
+                    content: decodeBase64(data.content),
+                    sha: data.sha
+                };
+            } catch (error) {
+                console.error(error);
+                throw error;
+            }
+        }
+
+        // 更新GitHub文件
+        async function updateFile(filename, content, sha) {
+            try {
+                const url = `https://api.github.com/repos/${GITHUB_USER}/${REPO_NAME}/contents/${filename}`;
+                const response = await fetch(url, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${GITHUB_TOKEN}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: `更新 ${filename}`,
+                        content: encodeBase64(content),
+                        sha: sha
+                    })
+                });
+
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.message || '更新失败');
+                }
+
+                return await response.json();
+            } catch (error) {
+                console.error(error);
+                throw error;
+            }
+        }
+
+        // 上传文件到GitHub
+        async function uploadFile(filename, content) {
+            try {
+                const url = `https://api.github.com/repos/${GITHUB_USER}/${REPO_NAME}/contents/${filename}`;
+                const response = await fetch(url, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${GITHUB_TOKEN}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: `上传 ${filename}`,
+                        content: encodeBase64(content)
+                    })
+                });
+
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.message || '上传失败');
+                }
+
+                return await response.json();
+            } catch (error) {
+                console.error(error);
+                throw error;
+            }
+        }
+
+        // 检查用户名是否已存在
+        async function checkUsernameExists(username) {
+            try {
+                const { content } = await getOrCreateFile(USERS_FILE);
+                const users = JSON.parse(content);
+                return users.some(user => user.username === username);
+            } catch (error) {
+                console.error(error);
+                throw error;
+            }
+        }
+
+        // 注册新用户
+        async function registerUser(username, password) {
+            try {
+                // 检查用户名是否已存在
+                const exists = await checkUsernameExists(username);
+                if (exists) {
+                    throw new Error('用户名已存在');
+                }
+
+                // 获取当前用户列表
+                const { content, sha } = await getOrCreateFile(USERS_FILE);
+                const users = JSON.parse(content);
+
+                // 添加新用户 (注意: 实际应用中应该对密码进行哈希处理)
+                users.push({ username, password, avatar: '' });
+
+                // 更新用户文件
+                await updateFile(USERS_FILE, JSON.stringify(users, null, 2), sha);
+
+                return true;
+            } catch (error) {
+                console.error(error);
+                throw error;
+            }
+        }
+
+        // 验证用户登录
+        async function validateUser(username, password) {
+            try {
+                const { content } = await getOrCreateFile(USERS_FILE);
+                const users = JSON.parse(content);
+                const user = users.find(user => user.username === username);
+                
+                if (!user) {
+                    throw new Error('用户不存在');
+                }
+
+                // 注意: 实际应用中应该比较哈希后的密码
+                if (user.password !== password) {
+                    throw new Error('密码不正确');
+                }
+
+                return user;
+            } catch (error) {
+                console.error(error);
+                throw error;
+            }
+        }
+
+        // 更新用户信息
+        async function updateUser(username, updates) {
+            try {
+                const { content, sha } = await getOrCreateFile(USERS_FILE);
+                const users = JSON.parse(content);
+                const userIndex = users.findIndex(user => user.username === username);
+                
+                if (userIndex === -1) {
+                    throw new Error('用户不存在');
+                }
+
+                // 更新用户信息
+                users[userIndex] = { ...users[userIndex], ...updates };
+
+                // 更新文件
+                await updateFile(USERS_FILE, JSON.stringify(users, null, 2), sha);
+
+                return users[userIndex];
+            } catch (error) {
+                console.error(error);
+                throw error;
+            }
+        }
+
+        // 获取用户头像URL
+        function getUserAvatarUrl(username, avatarPath) {
+            if (avatarPath) {
+                return `https://raw.githubusercontent.com/${GITHUB_USER}/${REPO_NAME}/main/${avatarPath}`;
+            }
+            return `https://raw.githubusercontent.com/${GITHUB_USER}/${REPO_NAME}/main/${AVATAR_FOLDER}default.png`;
+        }
+
+        // 登录和注册表单切换
+        document.getElementById('show-register').addEventListener('click', () => {
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('register-form').classList.remove('hidden');
+        });
+
+        document.getElementById('show-login').addEventListener('click', () => {
+            document.getElementById('register-form').classList.add('hidden');
+            document.getElementById('login-form').classList.remove('hidden');
+        });
+
+        // 检查自动登录
+        async function checkAutoLogin() {
+            const rememberMe = localStorage.getItem('rememberMe');
+            if (rememberMe) {
+                const username = localStorage.getItem('username');
+                const password = localStorage.getItem('password');
+                
+                if (username && password) {
+                    try {
+                        const user = await validateUser(username, password);
+                        loginSuccess(user);
+                    } catch (error) {
+                        // 自动登录失败，清除存储
+                        localStorage.removeItem('rememberMe');
+                        localStorage.removeItem('username');
+                        localStorage.removeItem('password');
+                    }
+                }
+            }
+        }
+
+        // 登录成功处理
+        function loginSuccess(user) {
+            // 显示聊天室
+            document.getElementById('login-container').classList.add('hidden');
+            document.getElementById('app-container').classList.remove('hidden');
+            
+            // 更新用户信息
+            document.getElementById('user-badge').textContent = user.username;
+            document.getElementById('sidebar-username').textContent = user.username;
+            document.getElementById('sidebar-avatar').textContent = user.username.charAt(0).toUpperCase();
+            
+            // 设置头像
+            const avatarUrl = getUserAvatarUrl(user.username, user.avatar);
+            const avatarElements = document.querySelectorAll('.user-avatar, #avatar-preview');
+            avatarElements.forEach(el => {
+                if (el.tagName === 'IMG') {
+                    el.src = avatarUrl;
+                } else {
+                    el.style.backgroundImage = `url(${avatarUrl})`;
+                    el.style.backgroundSize = 'cover';
+                    el.textContent = '';
+                }
+            });
+            
+            // 初始化聊天室
+            initChat(user);
+        }
+
+        // 注册按钮点击事件
+        document.getElementById('register-btn').addEventListener('click', async () => {
+            const username = document.getElementById('register-username').value.trim();
+            const password = document.getElementById('register-password').value.trim();
+            const confirmPassword = document.getElementById('confirm-password').value.trim();
+
+            if (!username || !password || !confirmPassword) {
+                showError('请填写所有字段', true);
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                showError('两次输入的密码不一致', true);
+                return;
+            }
+
+            try {
+                await registerUser(username, password);
+                showError('注册成功，请登录', true);
+                document.getElementById('register-form').classList.add('hidden');
+                document.getElementById('login-form').classList.remove('hidden');
+                // 清空注册表单
+                document.getElementById('register-username').value = '';
+                document.getElementById('register-password').value = '';
+                document.getElementById('confirm-password').value = '';
+            } catch (error) {
+                showError(error.message, true);
+            }
+        });
+
+        // 登录按钮点击事件
+        document.getElementById('login-btn').addEventListener('click', async () => {
+            const username = document.getElementById('login-username').value.trim();
+            const password = document.getElementById('login-password').value.trim();
+            const rememberMe = document.getElementById('remember-me').checked;
+
+            if (!username || !password) {
+                showError('请填写用户名和密码', true);
+                return;
+            }
+
+            try {
+                const user = await validateUser(username, password);
+                
+                // 记住登录状态
+                if (rememberMe) {
+                    localStorage.setItem('rememberMe', 'true');
+                    localStorage.setItem('username', username);
+                    localStorage.setItem('password', password);
+                } else {
+                    localStorage.removeItem('rememberMe');
+                    localStorage.removeItem('username');
+                    localStorage.removeItem('password');
+                }
+                
+                loginSuccess(user);
+            } catch (error) {
+                showError(error.message, true);
+            }
+        });
+
+        // 聊天室功能
+        let currentUser = null;
+        let selectedMessage = null;
+        let lastMessages = [];
+
+        function initChat(user) {
+            currentUser = user;
+            loadMessages();
+            setInterval(loadMessages, 60000);
+            setupContextMenu();
+            setupAttachmentMenu();
+        }
+
+        // 设置右键菜单
+        function setupContextMenu() {
+            const contextMenu = document.getElementById('context-menu');
+            const messagesContainer = document.getElementById('messages');
+
+            // 隐藏右键菜单
+            function hideContextMenu() {
+                contextMenu.style.display = 'none';
+            }
+
+            // 显示右键菜单
+            function showContextMenu(e, messageElement, messageData) {
+                e.preventDefault();
+                selectedMessage = messageData;
+                
+                // 设置菜单位置
+                contextMenu.style.display = 'block';
+                contextMenu.style.left = `${e.clientX}px`;
+                contextMenu.style.top = `${e.clientY}px`;
+                
+                // 如果是自己的消息，显示撤回按钮
+                const deleteBtn = document.getElementById('context-menu-delete');
+                deleteBtn.style.display = messageData.username === currentUser.username ? 'block' : 'none';
+            }
+
+            // 右键点击消息
+            messagesContainer.addEventListener('contextmenu', (e) => {
+                const messageElement = e.target.closest('.message');
+                if (messageElement) {
+                    const messageId = messageElement.dataset.id;
+                    const messageData = lastMessages.find(msg => msg.id === messageId);
+                    if (messageData) {
+                        showContextMenu(e, messageElement, messageData);
+                    }
+                }
+            });
+
+            // 点击其他地方隐藏菜单
+            document.addEventListener('click', hideContextMenu);
+
+            // 复制消息
+            document.getElementById('context-menu-copy').addEventListener('click', () => {
+                if (selectedMessage) {
+                    navigator.clipboard.writeText(selectedMessage.text);
+                    hideContextMenu();
+                }
+            });
+
+            // 引用消息
+            document.getElementById('context-menu-reply').addEventListener('click', () => {
+                if (selectedMessage) {
+                    const input = document.getElementById('message-input');
+                    input.value = `@${selectedMessage.username}: ${selectedMessage.text}`;
+                    input.focus();
+                    hideContextMenu();
+                }
+            });
+
+            // 撤回消息
+            document.getElementById('context-menu-delete').addEventListener('click', async () => {
+                if (selectedMessage && selectedMessage.username === currentUser.username) {
+                    try {
+                        const { content, sha } = await getOrCreateFile(MESSAGES_FILE);
+                        const messages = JSON.parse(content);
+                        const updatedMessages = messages.filter(msg => msg.id !== selectedMessage.id);
+                        await updateFile(MESSAGES_FILE, JSON.stringify(updatedMessages, null, 2), sha);
+                        loadMessages();
+                    } catch (error) {
+                        showError(`撤回失败: ${error.message}`, false);
+                        console.error(error);
+                    }
+                    hideContextMenu();
+                }
+            });
+        }
+
+        // 设置附件菜单
+        function setupAttachmentMenu() {
+            const plusBtn = document.getElementById('plus-btn');
+            const attachmentMenu = document.getElementById('attachment-menu');
+            const sendImageBtn = document.getElementById('send-image-btn');
+            const sendVideoBtn = document.getElementById('send-video-btn');
+            const imageInput = document.getElementById('image-input');
+            const videoInput = document.getElementById('video-input');
+
+            // 切换附件菜单显示
+            plusBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                attachmentMenu.classList.toggle('show');
+            });
+
+            // 点击其他地方隐藏菜单
+            document.addEventListener('click', () => {
+                attachmentMenu.classList.remove('show');
+            });
+
+            // 发送图片
+            sendImageBtn.addEventListener('click', () => {
+                imageInput.click();
+            });
+
+            // 发送视频
+            sendVideoBtn.addEventListener('click', () => {
+                videoInput.click();
+            });
+
+            // 处理图片选择
+            imageInput.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    try {
+                        const reader = new FileReader();
+                        reader.onload = async (event) => {
+                            const base64Data = event.target.result.split(',')[1];
+                            const fileExt = file.name.split('.').pop();
+                            const filename = `${TEMP_FOLDER}${generateRandomFilename(fileExt)}`;
+                            
+                            // 上传图片到GitHub
+                            await uploadFile(filename, base64Data);
+                            
+                            // 发送图片消息
+                            await sendMessage('', filename, 'image');
+                        };
+                        reader.readAsDataURL(file);
+                    } catch (error) {
+                        showError(`图片上传失败: ${error.message}`, false);
+                        console.error(error);
+                    }
+                }
+            });
+
+            // 处理视频选择
+            videoInput.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    try {
+                        const reader = new FileReader();
+                        reader.onload = async (event) => {
+                            const base64Data = event.target.result.split(',')[1];
+                            const fileExt = file.name.split('.').pop();
+                            const filename = `${TEMP_FOLDER}${generateRandomFilename(fileExt)}`;
+                            
+                            // 上传视频到GitHub
+                            await uploadFile(filename, base64Data);
+                            
+                            // 发送视频消息
+                            await sendMessage('', filename, 'video');
+                        };
+                        reader.readAsDataURL(file);
+                    } catch (error) {
+                        showError(`视频上传失败: ${error.message}`, false);
+                        console.error(error);
+                    }
+                }
+            });
+        }
+
+        // 加载历史消息
+        async function loadMessages() {
+            try {
+                const { content } = await getOrCreateFile(MESSAGES_FILE);
+                const messages = JSON.parse(content);
+                
+                // 为新消息添加唯一ID（如果还没有）
+                messages.forEach(msg => {
+                    if (!msg.id) {
+                        msg.id = Math.random().toString(36).substring(2, 15) + Date.now();
+                    }
+                });
+                
+                // 检查是否有新消息
+                const hasNewMessages = messages.length > lastMessages.length || 
+                    (messages.length > 0 && lastMessages.length > 0 && 
+                     messages[messages.length - 1].id !== lastMessages[lastMessages.length - 1].id);
+                
+                lastMessages = [...messages];
+                displayMessages(messages);
+                
+                // 播放通知声音
+                if (hasNewMessages && messages.length > 0 && 
+                    messages[messages.length - 1].username !== currentUser.username) {
+                    const notification = document.getElementById('message-notification');
+                    notification.currentTime = 0;
+                    notification.play().catch(e => console.log('无法播放通知声音:', e));
+                }
+            } catch (error) {
+                showError(`加载失败: ${error.message}`, false);
+                console.error(error);
+            }
+        }
+
+        // 显示消息
+        function displayMessages(messages) {
+        const container = document.getElementById('messages');
+        container.innerHTML = messages.map(msg => {
+            const isCurrentUser = msg.username === currentUser.username;
+            const isTemp = msg.isTemp;
+            const avatarUrl = msg.avatar ? 
+                `https://raw.githubusercontent.com/${GITHUB_USER}/${REPO_NAME}/main/${msg.avatar}` : 
+                `https://raw.githubusercontent.com/${GITHUB_USER}/${REPO_NAME}/main/${AVATAR_FOLDER}default.png`;
+            
+            // 临时消息添加半透明样式
+            const tempStyle = isTemp ? 'opacity: 0.7;' : '';
+            
+            // 处理媒体消息
+            let mediaContent = '';
+            if (msg.mediaUrl) {
+                const rawUrl = `https://raw.githubusercontent.com/${GITHUB_USER}/${REPO_NAME}/main/${msg.mediaUrl}`;
+                const cdnUrl = `https://cdn.jsdelivr.net/gh/${GITHUB_USER}/${REPO_NAME}@main/${msg.mediaUrl}`;
+                
+                mediaContent = `
+                    <div class="media-message">
+                        <img 
+                            src="${rawUrl}"
+                            onerror="this.src='${cdnUrl}'" 
+                            alt="聊天图片"
+                            style="max-width: 100%; border-radius: 8px;"
+                        />
+                    </div>
+                `;
+            }
+            
+            // 处理引用消息
+            let quotedContent = '';
+            if (msg.quotedMessage) {
+                quotedContent = `
+                    <div class="quoted-message">
+                        <div class="quoted-username">${msg.quotedMessage.username}</div>
+                        <div class="quoted-text">${msg.quotedMessage.text || '[图片]' || '[视频]'}</div>
+                    </div>
+                `;
+            }
+            
+            return `
+                <div class="message ${isCurrentUser ? 'user-message' : 'other-message'}" 
+                    data-id="${msg.id}" 
+                    style="${tempStyle}">
+                    ${!isCurrentUser ? `
+                        <img class="message-avatar" src="${avatarUrl}" alt="${msg.username}">
+                    ` : ''}
+                    <div class="message-content">
+                        <div class="message-info">
+                            <span class="username">${msg.username}</span>
+                            <span class="timestamp">${formatTime(msg.timestamp)}</span>
+                        </div>
+                        ${quotedContent}
+                        ${msg.text ? `<div class="message-text">${msg.text}</div>` : ''}
+                        ${mediaContent}
+                    </div>
+                    ${isCurrentUser ? `
+                        <img class="message-avatar" src="${avatarUrl}" alt="${msg.username}">
+                    ` : ''}
+                </div>
+            `;
+        }).join('');
+        container.scrollTop = container.scrollHeight;
+    }
+
+        // 格式化时间
+        function formatTime(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        // 发送新消息
+        async function sendMessage(text, mediaUrl = null, mediaType = null, quotedMessage = null) {
+            // 先在前端显示消息（临时状态）
+            const tempMessage = {
+                id: 'temp-' + Date.now(),
+                username: currentUser.username,
+                text,
+                mediaUrl,
+                mediaType,
+                quotedMessage,
+                timestamp: new Date().toISOString(),
+                avatar: currentUser.avatar,
+                isTemp: true // 标记为临时消息
+            };
+            
+            // 添加到消息列表并显示
+            lastMessages.push(tempMessage);
+            displayMessages(lastMessages);
+            
+            // 如果是文本消息，检测脏话
+            if (text && !mediaUrl) {
+                try {
+                    const hasProfanity = await detectProfanity(text);
+                    if (hasProfanity) {
+                        // 从临时消息中移除
+                        lastMessages = lastMessages.filter(msg => msg.id !== tempMessage.id);
+                        displayMessages(lastMessages);
+                        showViolationAlert(text);
+                        return;
+                    }
+                } catch (error) {
+                    console.error('脏话检测失败:', error);
+                    // 如果检测失败，继续发送消息
+                }
+            }
+
+            // 如果没有脏话，保存到GitHub
+            try {
+                const { content, sha } = await getOrCreateFile(MESSAGES_FILE);
+                const messages = JSON.parse(content);
+
+                // 创建正式消息（替换临时消息）
+                const finalMessage = {
+                    ...tempMessage,
+                    id: Math.random().toString(36).substring(2, 15) + Date.now(),
+                    isTemp: undefined
+                };
+
+                messages.push(finalMessage);
+                await updateFile(MESSAGES_FILE, JSON.stringify(messages, null, 2), sha);
+                
+                // 更新本地消息列表
+                lastMessages = lastMessages.filter(msg => msg.id !== tempMessage.id);
+                lastMessages.push(finalMessage);
+                displayMessages(lastMessages);
+            } catch (error) {
+                // 保存失败，移除临时消息
+                lastMessages = lastMessages.filter(msg => msg.id !== tempMessage.id);
+                displayMessages(lastMessages);
+                showError(`发送失败: ${error.message}`, false);
+                console.error(error);
+            }
+        }
+        // 消息表单提交
+        document.getElementById('message-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const input = document.getElementById('message-input');
+            const text = input.value.trim();
+            if (text) {
+                input.value = ''; // 清空输入框
+                await sendMessage(text); // 发送消息
+            }
+        });
+        // 个人信息页面功能
+        document.getElementById('edit-profile').addEventListener('click', () => {
+            // 显示个人信息页面
+            document.getElementById('profile-container').style.display = 'flex';
+            
+            // 填充当前用户信息
+            document.getElementById('profile-username').value = currentUser.username;
+            document.getElementById('profile-password').value = '';
+            
+            // 设置头像预览
+            const avatarUrl = getUserAvatarUrl(currentUser.username, currentUser.avatar);
+            document.getElementById('avatar-preview').src = avatarUrl;
+        });
+
+        document.getElementById('profile-back').addEventListener('click', () => {
+            document.getElementById('profile-container').style.display = 'none';
+        });
+
+        document.getElementById('avatar-upload-btn').addEventListener('click', () => {
+            document.getElementById('avatar-upload').click();
+        });
+
+        document.getElementById('avatar-upload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    document.getElementById('avatar-preview').src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.getElementById('save-profile').addEventListener('click', async () => {
+            const newPassword = document.getElementById('profile-password').value.trim();
+            const avatarFile = document.getElementById('avatar-upload').files[0];
+            
+            try {
+                let avatarPath = currentUser.avatar;
+                
+                // 上传新头像
+                if (avatarFile) {
+                    const fileExt = avatarFile.name.split('.').pop();
+                    const newAvatarPath = `${AVATAR_FOLDER}${currentUser.username}.${fileExt}`;
+                    
+                    // 读取文件内容
+                    const reader = new FileReader();
+                    const fileContent = await new Promise((resolve) => {
+                        reader.onload = (event) => {
+                            // 移除Base64前缀
+                            const base64Data = event.target.result.split(',')[1];
+                            resolve(base64Data);
+                        };
+                        reader.readAsDataURL(avatarFile);
+                    });
+                    
+                    // 上传文件到GitHub
+                    await uploadFile(newAvatarPath, fileContent);
+                    avatarPath = newAvatarPath;
+                }
+                
+                // 更新用户信息
+                const updates = {};
+                if (newPassword) updates.password = newPassword;
+                if (avatarFile) updates.avatar = avatarPath;
+                
+                if (Object.keys(updates).length > 0) {
+                    const updatedUser = await updateUser(currentUser.username, updates);
+                    currentUser = updatedUser;
+                    
+                    // 更新UI中的头像
+                    const avatarUrl = getUserAvatarUrl(currentUser.username, currentUser.avatar);
+                    const avatarElements = document.querySelectorAll('.user-avatar, .message-avatar, #avatar-preview');
+                    avatarElements.forEach(el => {
+                        if (el.tagName === 'IMG') {
+                            el.src = avatarUrl;
+                        } else {
+                            el.style.backgroundImage = `url(${avatarUrl})`;
+                            el.style.backgroundSize = 'cover';
+                            el.textContent = '';
+                        }
+                    });
+                    
+                    showError('个人信息已更新', false);
+                }
+                
+                // 关闭个人信息页面
+                document.getElementById('profile-container').style.display = 'none';
+                document.getElementById('profile-password').value = '';
+                document.getElementById('avatar-upload').value = '';
+            } catch (error) {
+                showError(`保存失败: ${error.message}`, false);
+                console.error(error);
+            }
+        });
+        // 检测脏话
+        async function detectProfanity(text) {
+            if (!text) return false;
+            
+            try {
+                const response = await fetch('https://api.siliconflow.cn/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${SILICONFLOW_API_KEY}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        "model": "Qwen/Qwen3-8B",
+                        "messages": [{
+                            "role": "user",
+                            "content": `请判断以下文本是否包含脏话或不文明用语，只回答true或false（要着重检测比如（脏话的一般）一堆字（脏话的另一半））: "${text}"`
+                        }],
+                        "max_tokens": 512,
+                        "temperature": 0.7
+                    })
+                });
+
+                const data = await response.json();
+                const result = data.choices[0].message.content.trim().toLowerCase();
+                return result === 'true';
+            } catch (error) {
+                console.error('脏话检测失败:', error);
+                return false;
+            }
+        }
+        // 显示违规警告
+        function showViolationAlert(violationText) {
+            document.getElementById('violation-text').textContent = violationText;
+            document.getElementById('violation-overlay').style.display = 'block';
+            document.getElementById('violation-alert').style.display = 'block';
+        }
+
+        // 隐藏违规警告
+        function hideViolationAlert() {
+            document.getElementById('violation-overlay').style.display = 'none';
+            document.getElementById('violation-alert').style.display = 'none';
+        }
+
+        // 申诉按钮点击事件
+        document.getElementById('appeal-btn').addEventListener('click', () => {
+            window.location.href = 'shengsu.html';
+        });
+
+        // 点击遮罩层关闭警告
+        document.getElementById('violation-overlay').addEventListener('click', hideViolationAlert);
+        // 页面加载时检查自动登录
+        window.addEventListener('DOMContentLoaded', checkAutoLogin);
+    </script>
+</body>
+</html>
